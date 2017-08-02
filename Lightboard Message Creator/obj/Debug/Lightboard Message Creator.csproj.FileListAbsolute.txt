@@ -1,0 +1,19 @@
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\bin\Debug\Lightboard Message Creator.exe.config
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\bin\Debug\Lightboard Message Creator.exe
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\bin\Debug\Lightboard Message Creator.pdb
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator.csprojResolveAssemblyReference.cache
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\MainWindow.baml
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\MainWindow.g.cs
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\App.g.cs
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator_MarkupCompile.cache
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator.g.resources
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard_Message_Creator.Properties.Resources.resources
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator.csproj.GenerateResource.Cache
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator.exe
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator.pdb
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\bin\Debug\images\Pause.png
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\bin\Debug\images\Play.png
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\bin\Debug\images\Stop.png
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator_Content.g.cs
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\GeneratedInternalTypeHelper.g.cs
+M:\Work\Programming\Visual Studio Projects\VS2013\Lightboard Message Creator\Lightboard Message Creator\obj\Debug\Lightboard Message Creator_MarkupCompile.lref
