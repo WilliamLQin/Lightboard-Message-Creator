@@ -14,6 +14,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Text.RegularExpressions;
+using Winforms = System.Windows.Forms;
 //using System.Drawing;
 //using System.Drawing.Imaging;
 //using System.Runtime.InteropServices;
@@ -30,12 +31,12 @@ namespace Lightboard_Message_Creator
         Button CurrentAnchorButton;
         List<List<Button>> CollectionLEDs;
         List<List<int>> MessageMap;
-        int LEDBoardWidth = 12; // Target -> 72
-        int LEDBoardHeight = 12; // Target -> 22
+        int LEDBoardWidth = 72; // Target -> 72
+        int LEDBoardHeight = 22; // Target -> 22
 
         DispatcherTimer PreviewTimer;
-        int HorizontalScrollingSpeed = 300;
-        int VerticalScrollingSpeed = 80;
+        int HorizontalScrollingSpeed = 50;
+        int VerticalScrollingSpeed = 30;
         int VerticalPauseSpeed = 3000;
         int FlashSpeed = 3000;
 
@@ -60,7 +61,7 @@ namespace Lightboard_Message_Creator
         private void Window_ContentRendered(object sender, EventArgs e)
         {
             CollectionLEDs = new List<List<Button>>();
-            for (int i = 0; i < LEDBoardHeight; i++)
+            for (int i = 0; i < LEDBoardWidth; i++)
             {
                 CollectionLEDs.Add(new List<Button>());
             }
@@ -79,7 +80,7 @@ namespace Lightboard_Message_Creator
                 }
 
                 yPos += 1;
-                if (yPos >= LEDBoardWidth)
+                if (yPos >= LEDBoardHeight)
                 {
                     xPos += 1;
                     yPos = 0;
@@ -175,7 +176,7 @@ namespace Lightboard_Message_Creator
 
         private void MenuNew_Click(object sender, RoutedEventArgs e)
         {
-
+            System.Diagnostics.Process.Start(Application.ResourceAssembly.Location);
         }
         private void MenuOpen_Click(object sender, RoutedEventArgs e)
         {
@@ -183,7 +184,48 @@ namespace Lightboard_Message_Creator
         }
         private void MenuSave_Click(object sender, RoutedEventArgs e)
         {
+            Winforms.SaveFileDialog saveFileDialog = new Winforms.SaveFileDialog();
 
+            saveFileDialog.Filter = "txt files (*.txt)|*.txt";
+            saveFileDialog.FilterIndex = 2;
+            saveFileDialog.RestoreDirectory = true;
+
+
+            if (saveFileDialog.ShowDialog() == Winforms.DialogResult.OK)
+            {
+                System.IO.Stream file = saveFileDialog.OpenFile();
+
+                if (file != null)
+                {
+                    System.IO.StreamWriter sw = new System.IO.StreamWriter(file);
+
+                    int w = MessageMap.Count;
+                    int h = MessageMap[0].Count;
+
+                    string finalMessage = "";
+                    finalMessage += DisplayModeSelect.SelectedIndex;
+                    finalMessage += ", ";
+
+                    for (int y = 0; y < h; y++)
+                    {
+                        double total = 0;
+                        for (int x = 0; x < w; x++)
+                        {
+                            total += (MessageMap[x][y] * (Math.Pow(2, w - x - 2)));
+                        }
+                        finalMessage += total.ToString();
+                        finalMessage += ", ";
+                    }
+
+                    finalMessage = finalMessage.Substring(0, finalMessage.Length - 2);
+                    sw.WriteLine(finalMessage);
+
+                    sw.Flush();
+                    sw.Close();
+                }
+            }
+
+            
         }
 
         private void AddTextButton_Click(object sender, RoutedEventArgs e)
@@ -198,6 +240,9 @@ namespace Lightboard_Message_Creator
             int yPos = int.Parse(TextPositionY.Text) - 1;
 
             InputText inputText = ProcessInputText();
+
+            if (inputText.PointMap.Count == 0)
+                return;
 
             switch(TextAnchorMode)
             {
@@ -253,9 +298,27 @@ namespace Lightboard_Message_Creator
 
         private InputText ProcessInputText()
         {
-            List<Point> pointMap;
+            List<Point> pointMap = new List<Point>();
 
-            EnglishFont.TryGetValue("a", out pointMap);// Logic for creating point map
+            int distance = 8;
+            string inputtedText = TextInput.Text;
+            for(int counter = 0; counter < inputtedText.Length; counter++)
+            {
+                List<Point> getPoints = new List<Point>();
+                EnglishFont.TryGetValue(inputtedText[counter].ToString(), out getPoints);
+
+                if (getPoints == null)
+                {
+                    MessageBox.Show("Please enter a valid character.");
+                    return new InputText(new List<Point>(), 0, 0);
+                }
+
+                foreach(Point pt in getPoints)
+                {
+                    pointMap.Add(Point.Add(pt, new Vector(counter * distance, 0)));
+                }
+
+            }
 
             int width = 0;
             int height = 0;
@@ -380,6 +443,7 @@ namespace Lightboard_Message_Creator
             
             
             SizeConfirm.IsEnabled = false;
+            ClearMessage.IsEnabled = false;
             MessageWidth.IsEnabled = false;
             MessageHeight.IsEnabled = false;
 
@@ -457,6 +521,7 @@ namespace Lightboard_Message_Creator
 
 
             SizeConfirm.IsEnabled = true;
+            ClearMessage.IsEnabled = true;
             MessageWidth.IsEnabled = true;
             MessageHeight.IsEnabled = true;
 
@@ -815,10 +880,76 @@ namespace Lightboard_Message_Creator
 
         private void InitializeEnglishFont()
         {
+            EnglishFont.Add(" ", Convert2DArrayToPointList(space));
+
             EnglishFont.Add("a", Convert2DArrayToPointList(letterA));
+            EnglishFont.Add("b", Convert2DArrayToPointList(letterB));
+            EnglishFont.Add("c", Convert2DArrayToPointList(letterC));
+            EnglishFont.Add("d", Convert2DArrayToPointList(letterD));
+            EnglishFont.Add("e", Convert2DArrayToPointList(letterE));
+            EnglishFont.Add("f", Convert2DArrayToPointList(letterF));
+            EnglishFont.Add("g", Convert2DArrayToPointList(letterG));
+            EnglishFont.Add("h", Convert2DArrayToPointList(letterH));
+            EnglishFont.Add("i", Convert2DArrayToPointList(letterI));
+            EnglishFont.Add("j", Convert2DArrayToPointList(letterJ));
+            EnglishFont.Add("k", Convert2DArrayToPointList(letterK));
+            EnglishFont.Add("l", Convert2DArrayToPointList(letterL));
+            EnglishFont.Add("m", Convert2DArrayToPointList(letterM));
+            EnglishFont.Add("n", Convert2DArrayToPointList(letterN));
+            EnglishFont.Add("o", Convert2DArrayToPointList(letterO));
+            EnglishFont.Add("p", Convert2DArrayToPointList(letterP));
+            EnglishFont.Add("q", Convert2DArrayToPointList(letterQ));
+            EnglishFont.Add("r", Convert2DArrayToPointList(letterR));
+            EnglishFont.Add("s", Convert2DArrayToPointList(letterS));
+            EnglishFont.Add("t", Convert2DArrayToPointList(letterT));
+            EnglishFont.Add("u", Convert2DArrayToPointList(letterU));
+            EnglishFont.Add("v", Convert2DArrayToPointList(letterV));
+            EnglishFont.Add("w", Convert2DArrayToPointList(letterW));
+            EnglishFont.Add("x", Convert2DArrayToPointList(letterX));
+            EnglishFont.Add("y", Convert2DArrayToPointList(letterY));
+            EnglishFont.Add("z", Convert2DArrayToPointList(letterZ));
+
+
             EnglishFont.Add("A", Convert2DArrayToPointList(letterA));
+            EnglishFont.Add("B", Convert2DArrayToPointList(letterB));
+            EnglishFont.Add("C", Convert2DArrayToPointList(letterC));
+            EnglishFont.Add("D", Convert2DArrayToPointList(letterD));
+            EnglishFont.Add("E", Convert2DArrayToPointList(letterE));
+            EnglishFont.Add("F", Convert2DArrayToPointList(letterF));
+            EnglishFont.Add("G", Convert2DArrayToPointList(letterG));
+            EnglishFont.Add("H", Convert2DArrayToPointList(letterH));
+            EnglishFont.Add("I", Convert2DArrayToPointList(letterI));
+            EnglishFont.Add("J", Convert2DArrayToPointList(letterJ));
+            EnglishFont.Add("K", Convert2DArrayToPointList(letterK));
+            EnglishFont.Add("L", Convert2DArrayToPointList(letterL));
+            EnglishFont.Add("M", Convert2DArrayToPointList(letterM));
+            EnglishFont.Add("N", Convert2DArrayToPointList(letterN));
+            EnglishFont.Add("O", Convert2DArrayToPointList(letterO));
+            EnglishFont.Add("P", Convert2DArrayToPointList(letterP));
+            EnglishFont.Add("Q", Convert2DArrayToPointList(letterQ));
+            EnglishFont.Add("R", Convert2DArrayToPointList(letterR));
+            EnglishFont.Add("S", Convert2DArrayToPointList(letterS));
+            EnglishFont.Add("T", Convert2DArrayToPointList(letterT));
+            EnglishFont.Add("U", Convert2DArrayToPointList(letterU));
+            EnglishFont.Add("V", Convert2DArrayToPointList(letterV));
+            EnglishFont.Add("W", Convert2DArrayToPointList(letterW));
+            EnglishFont.Add("X", Convert2DArrayToPointList(letterX));
+            EnglishFont.Add("Y", Convert2DArrayToPointList(letterY));
+            EnglishFont.Add("Z", Convert2DArrayToPointList(letterZ));
         }
 
+        int[,] space = new int[10, 7]{
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0},
+            {0,0,0,0,0,0,0}
+        };
 
         int[,] letterA = new int[10,7]{
             {0,1,1,1,1,0,0},
@@ -831,6 +962,331 @@ namespace Lightboard_Message_Creator
             {1,0,0,0,0,1,0},
             {1,0,0,0,0,1,0},
             {1,0,0,0,0,1,0}
+        };
+
+        int[,] letterB = new int[10, 7]{
+            {1,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,1,1,1,1,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,1,1,1,1,0,0}
+        };
+
+        int[,] letterC = new int[10, 7]{
+            {0,0,1,1,1,0,0},
+            {0,1,0,0,0,1,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {0,1,0,0,0,1,0},
+            {0,0,1,1,1,0,0}
+        };
+
+        int[,] letterD = new int[10, 7]{
+            {1,1,1,1,0,0,0},
+            {1,0,0,0,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,1,0,0},
+            {1,1,1,1,0,0,0}
+        };
+
+        int[,] letterE = new int[10, 7]{
+            {1,1,1,1,1,1,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,1,1,1,1,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,1,1,1,1,1,0}
+        };
+
+        int[,] letterF = new int[10, 7]{
+            {1,1,1,1,1,1,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,1,1,1,1,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0}
+        };
+
+        int[,] letterG = new int[10, 7]{
+            {0,0,1,1,1,0,0},
+            {0,1,0,0,0,1,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,1,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,0,0,0,1,0},
+            {0,0,1,1,1,1,0}
+        };
+
+        int[,] letterH = new int[10, 7]{
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,1,1,1,1,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0}
+        };
+
+        int[,] letterI = new int[10, 7]{
+            {0,1,1,1,1,1,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,1,1,1,1,1,0}
+        };
+
+        int[,] letterJ = new int[10, 7]{
+            {0,0,0,1,1,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,1,0,0,1,0,0},
+            {0,0,1,1,0,0,0}
+        };
+
+        int[,] letterK = new int[10, 7]{
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,1,0,0},
+            {1,0,0,1,0,0,0},
+            {1,0,1,0,0,0,0},
+            {1,1,0,0,0,0,0},
+            {1,1,0,0,0,0,0},
+            {1,0,1,0,0,0,0},
+            {1,0,0,1,0,0,0},
+            {1,0,0,0,1,0,0},
+            {1,0,0,0,0,1,0}
+        };
+
+        int[,] letterL = new int[10, 7]{
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,1,1,1,1,1,0}
+        };
+
+        int[,] letterM = new int[10, 7]{
+            {1,0,0,0,0,0,1},
+            {1,1,0,0,0,1,1},
+            {1,1,0,0,0,1,1},
+            {1,0,1,0,1,0,1},
+            {1,0,1,0,1,0,1},
+            {1,0,0,1,0,0,1},
+            {1,0,0,1,0,0,1},
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1}
+        };
+
+        int[,] letterN = new int[10, 7]{
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,1,0,0,0,1,0},
+            {1,0,1,0,0,1,0},
+            {1,0,1,0,0,1,0},
+            {1,0,0,1,0,1,0},
+            {1,0,0,1,0,1,0},
+            {1,0,0,0,1,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0}
+        };
+
+        int[,] letterO = new int[10, 7]{
+            {0,0,1,1,0,0,0},
+            {0,1,0,0,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,0,0,1,0,0},
+            {0,0,1,1,0,0,0}
+        };
+
+        int[,] letterP = new int[10, 7]{
+            {1,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,1,1,1,1,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0}
+        };
+
+        int[,] letterQ = new int[10, 7]{
+            {0,0,1,1,0,0,0},
+            {0,1,0,0,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,1,0,1,0},
+            {0,1,0,0,1,0,0},
+            {0,0,1,1,0,1,0}
+        };
+
+        int[,] letterR = new int[10, 7]{
+            {1,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,1,1,1,1,0,0},
+            {1,0,0,1,0,0,0},
+            {1,0,0,0,1,0,0},
+            {1,0,0,0,1,0,0},
+            {1,0,0,0,0,1,0}
+        };
+
+        int[,] letterS = new int[10, 7]{
+            {0,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {0,1,1,1,1,0,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,1,1,1,0,0}
+        };
+
+        int[,] letterT = new int[10, 7]{
+            {1,1,1,1,1,1,1},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0}
+        };
+
+        int[,] letterU = new int[10, 7]{
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,1,1,1,0,0}
+        };
+
+        int[,] letterV = new int[10, 7]{
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1},
+            {0,1,0,0,0,1,0},
+            {0,1,0,0,0,1,0},
+            {0,1,0,0,0,1,0},
+            {0,0,1,0,1,0,0},
+            {0,0,1,0,1,0,0},
+            {0,0,1,0,1,0,0},
+            {0,0,0,1,0,0,0}
+        };
+
+        int[,] letterW = new int[10, 7]{
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1},
+            {1,0,0,1,0,0,1},
+            {1,0,0,1,0,0,1},
+            {1,0,1,0,1,0,1},
+            {1,0,1,0,1,0,1},
+            {0,1,0,0,0,1,0},
+            {0,1,0,0,0,1,0}
+        };
+
+        int[,] letterX = new int[10, 7]{
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,0,0,1,0,0},
+            {0,1,0,0,1,0,0},
+            {0,0,1,1,0,0,0},
+            {0,0,1,1,0,0,0},
+            {0,1,0,0,1,0,0},
+            {0,1,0,0,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0}
+        };
+
+        int[,] letterY = new int[10, 7]{
+            {1,0,0,0,0,0,1},
+            {1,0,0,0,0,0,1},
+            {0,1,0,0,0,1,0},
+            {0,1,0,0,0,1,0},
+            {0,0,1,0,1,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0}
+        };
+
+        int[,] letterZ = new int[10, 7]{
+            {1,1,1,1,1,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,1,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,1,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,1,1,1,1,1,0}
         };
 
     }
