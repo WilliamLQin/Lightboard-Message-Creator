@@ -4,14 +4,15 @@
         xmlns:local="clr-namespace:Lightboard_Message_Creator"
         Title="MainWindow" Height="768" Width="1024"
         Background="Black"
-        ContentRendered="Window_ContentRendered" ResizeMode="CanMinimize">
+        ContentRendered="Window_ContentRendered" ResizeMode="CanMinimize"
+        KeyDown="TextKey_Pressed">
     <Grid x:Name="RootGrid">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="1024*"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
-            <RowDefinition Height="200"/>
+            <RowDefinition Height="100"/>
             <RowDefinition Height="90"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
@@ -26,7 +27,7 @@
         </ToolBar>
 
         <!-- Boxes for controls -->
-        <Rectangle Stroke="#a0a0a0" Height="180" Margin="10" Grid.Row="1" VerticalAlignment="Center"/>
+        <Rectangle Stroke="#a0a0a0" Height="80" Margin="10,5" Grid.Row="1" VerticalAlignment="Center"/>
         <Rectangle Stroke="#a0a0a0" Height="80" Margin="10,0,10,10" Grid.Row="2" VerticalAlignment="Center"/>
 
         <!-- Bottom Box Controls -->
@@ -78,48 +79,11 @@
 
 
         <!-- Top Box Controls -->
-        <Label Content="Add Text" HorizontalAlignment="Left" Margin="25,19,0,155" Grid.Row="1" VerticalAlignment="Center" Width="125" Foreground="White" Height="26"/>
-        <Button x:Name="AddTextButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="125" Margin="25,50,0,0" Grid.Row="1" Height="125" Click="AddTextButton_Click">
-            <local:AutoGreyableImage Source="images/Add.png"></local:AutoGreyableImage>
-        </Button>
-
-        <Label Content="Message" HorizontalAlignment="Left" Margin="175,19,0,155" Grid.Row="1" VerticalAlignment="Center" Width="125" Foreground="White" Height="26"/>
-        <TextBox x:Name="TextInput" HorizontalAlignment="Left" Height="125" Margin="175,50,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="525"/>
-
-        <Label Content="Anchor" HorizontalAlignment="Left" Margin="715,21,0,153" Grid.Row="1" VerticalAlignment="Center" Width="125" Foreground="White" Height="26"/>
-        <Button Click="AnchorButton_Click" x:Name="AnchorTopLeftButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="720,52,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorTopLeft.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorCenterTopButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="760,52,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorCenterTop.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorTopRightButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="800,52,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorTopRight.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorCenterLeftButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="720,92,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorCenterLeft.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorBottomLeftButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="720,132,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorBottomLeft.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorCenterButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="760,92,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorCenter.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorCenterRightButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="800,92,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorCenterRight.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorCenterBottomButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="760,132,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorCenterBottom.png"></local:AutoGreyableImage>
-        </Button>
-        <Button Click="AnchorButton_Click" x:Name="AnchorBottomRightButton" HorizontalAlignment="Left" VerticalAlignment="Top" Width="40" Margin="800,132,0,0" Grid.Row="1" Height="40">
-            <local:AutoGreyableImage Source="images/AnchorBottomRight.png"></local:AutoGreyableImage>
-        </Button>
-
-        <Label Content="Position" HorizontalAlignment="Left" Margin="860,21,0,153" Grid.Row="1" VerticalAlignment="Center" Width="125" Foreground="White" Height="26"/>
-        <Label Content="X" HorizontalAlignment="Left" Margin="865,74,0,100" Grid.Row="1" VerticalAlignment="Center" Width="115" Foreground="White" Height="26"/>
-        <Label Content="Y" HorizontalAlignment="Left" Margin="865,114,0,60" Grid.Row="1" VerticalAlignment="Center" Width="115" Foreground="White" Height="26"/>
-        <TextBox x:Name="TextPositionX" Text="1" PreviewTextInput="NumberValidationTextBox" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="26" Margin="885,74,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="95"/>
-        <TextBox x:Name="TextPositionY" Text="1" PreviewTextInput="NumberValidationTextBox" VerticalContentAlignment="Center" HorizontalAlignment="Left" Height="26" Margin="885,114,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="95"/>
+        <Label Content="Draw Mode" HorizontalAlignment="Left" Margin="24,17,0,57" Grid.Row="1" VerticalAlignment="Center" Width="125" Foreground="White" Height="26"/>
+        <Button x:Name="DrawModePencil" Tag="Pencil" Content="Pencil" HorizontalAlignment="Left" Margin="30,45,0,0" Grid.Row="1" VerticalAlignment="Top" Width="80" Height="30" Click="DrawMode_Click"/>
+        <Button x:Name="DrawModeEraser" Tag="Eraser" Content="Eraser" HorizontalAlignment="Left" Margin="140,45,0,0" Grid.Row="1" VerticalAlignment="Top" Width="80" Height="30" Click="DrawMode_Click"/>
+        <Button x:Name="DrawModeText" Tag="Text" Content="Text" HorizontalAlignment="Left" Margin="360,45,0,0" Grid.Row="1" VerticalAlignment="Top" Width="80" Height="30" Click="DrawMode_Click"/>
+        <Button x:Name="DrawModeSwitch" Tag="Switch" Content="Switch" HorizontalAlignment="Left" Margin="250,45,0,0" Grid.Row="1" VerticalAlignment="Top" Width="80" Height="30" Click="DrawMode_Click"/>
 
 
         <Label Content="Board" HorizontalAlignment="Left" Margin="25,10,0,381" Grid.Row="3" VerticalAlignment="Center" Width="125" Foreground="White" Height="26"/>
@@ -1710,6 +1674,7 @@
         <Button Click="LED_Click" ClickMode="Press" Tag="LED" HorizontalAlignment="Left" Margin="850,262,0,0" Grid.Row="3" VerticalAlignment="Top" Width="10" Height="10" Background="DarkGray" BorderBrush="DimGray"/>
         <Button Click="LED_Click" ClickMode="Press" Tag="LED" HorizontalAlignment="Left" Margin="850,272,0,0" Grid.Row="3" VerticalAlignment="Top" Width="10" Height="10" Background="DarkGray" BorderBrush="DimGray"/>
         <Button Click="LED_Click" ClickMode="Press" Tag="LED" HorizontalAlignment="Left" Margin="850,282,0,0" Grid.Row="3" VerticalAlignment="Top" Width="10" Height="10" Background="DarkGray" BorderBrush="DimGray"/>
-
+        
+        <Button Name="Unfocus" Margin="-523,82,1404,407" Grid.Row="3"/>
     </Grid>
 </Window>
