@@ -29,47 +29,80 @@ namespace Lightboard_Message_Creator
     {
         //string TextAnchorMode;
         //Button CurrentAnchorButton;
+
+        // Store current drawing mode
         string DrawMode;
+        // Text Mode variables
         Point CurrentTextModePosition;
         bool TextModeOn = false;
         DispatcherTimer TextPositionFlashingTimer;
         int TextPositionInitialState = 0;
+        // Store previously typed letters to delete on pressing Backspace (Text Mode)
         List<Point> PreviousLetterPositions = new List<Point>();
         List<List<Point>> PreviousLetters = new List<List<Point>>();
 
+        // Maps of UI Buttons and a bitmap for recording states respectively
         List<List<Button>> CollectionLEDs;
         List<List<int>> MessageMap;
 
-        List<List<int>> CenterOutStorage = new List<List<int>>();
+        // UI number of buttons horizontally and vertically
         int LEDBoardWidth = 72; // Target -> 72
         int LEDBoardHeight = 22; // Target -> 22
 
+        // Preview parameters for display modes
         DispatcherTimer PreviewTimer;
         int HorizontalScrollingSpeed = 50;
         int VerticalScrollingSpeed = 30;
         int VerticalPauseSpeed = 3000;
         int FlashSpeed = 1000;
 
+        // Storage variables for preview mode
+        List<List<int>> CenterOutStorage = new List<List<int>>();
         int EditingWidth = 12;
         int EditingHeight = 12;
+        int RollCounter = 0;
+        bool Scrolling = false;
 
+        // Scrolling state
         int ScrollPositionX = 0;
         int ScrollPositionY = 0;
 
-        int RollCounter = 0;
-
+        // Prevents events from occuring before Window_ContentRendered();
         bool FinishedLoading = false;
-        bool Scrolling = false;
-
+        
+        // Hard coded dictionary for which coordinates in a character are on
         Dictionary<string, List<Point>> EnglishFont;
+
 
         public MainWindow()
         {
             InitializeComponent();
         }
 
+        // Initialize window -> runs on start
         private void Window_ContentRendered(object sender, EventArgs e)
         {
+            // Populate list of buttons on LED board
+            /* In a sample 4x3 board (12 buttons), the buttons in the .xaml file will placed at the following indices
+             * <Button/> -> [0][0]
+             * <Button/> -> [0][1]
+             * <Button/> -> [0][2]
+             * <Button/> -> [1][0]
+             * <Button/> -> [1][1]
+             * <Button/> -> [1][2]
+             * <Button/> -> [2][0]
+             * <Button/> -> [2][1]
+             * <Button/> -> [2][2]
+             * <Button/> -> [3][0]
+             * <Button/> -> [3][1]
+             * <Button/> -> [3][2]
+             * 
+             * As such, when laying out the buttons on the .xaml file, lay the buttons out in columns:
+             * 
+             * 0  3  6  9
+             * 1  4  7  10
+             * 2  5  8  11
+             */
             CollectionLEDs = new List<List<Button>>();
             for (int i = 0; i < LEDBoardWidth; i++)
             {
@@ -99,35 +132,40 @@ namespace Lightboard_Message_Creator
             }
 
 
+            // Initialize bitmap with same width and height of UI button board
             MessageMap = new List<List<int>>();
-            SetMessageMapSize(LEDBoardWidth, LEDBoardHeight, true);
-
+            SetMessageMapSize(LEDBoardWidth, LEDBoardHeight, true); // Run function SetMessageMapSize(), true means that it is a new 2d list
+            // Set UI textbox input elements for width and height to display width and height of UI board
             MessageWidth.Text = LEDBoardWidth.ToString();
             MessageHeight.Text = LEDBoardHeight.ToString();
 
+            // Refresh display mode settings based on default set in .xaml
             ReloadNewDisplayMode();
 
+            // Initialize timer necessary for the preview
             PreviewTimer = new DispatcherTimer();
             PreviewTimer.Tick += new EventHandler(PreviewTimer_Tick);
             PreviewTimer.Interval = new TimeSpan(0, 0, 0, 0, 500);
 
-            //TextAnchorMode = "TopLeft";
-            //CurrentAnchorButton = AnchorTopLeftButton;
-            //CurrentAnchorButton.IsEnabled = false;
-
+            // Set default drawing mode
             DrawModePencil.IsEnabled = false;
             DrawMode = "Pencil";
 
+            // Initialize timer necessary for text drawing mode
             TextPositionFlashingTimer = new DispatcherTimer();
             TextPositionFlashingTimer.Tick += new EventHandler(TextPositionFlashingTimer_Tick);
             TextPositionFlashingTimer.Interval = new TimeSpan(0, 0, 0, 0, 300);
 
+            // Initialize hard coded font
             EnglishFont = new Dictionary<string, List<Point>>();
             InitializeEnglishFont();
 
+            // Allow some other functions to run
             FinishedLoading = true;
         }
 
+        // Used for hard coded font.
+        // Converts a 2d array of integers to a list of which coordinates are set to 1
         public List<Point> Convert2DArrayToPointList(int[,] charMap)
         {
             List<Point> reList = new List<Point>();
@@ -144,13 +182,16 @@ namespace Lightboard_Message_Creator
             return reList;
         }
 
-        
+        // Limits some text box inputs to numbers only
+        // Necessary for width and height adjustment
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e)
         {
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
 
+        // Functions for top toolbar to open a new window, open a text file to import it into the application, and save current message to a text file
+        // Work in progress
         private void MenuNew_Click(object sender, RoutedEventArgs e)
         {
             System.Diagnostics.Process.Start(Application.ResourceAssembly.Location);
@@ -203,121 +244,15 @@ namespace Lightboard_Message_Creator
             }
         }
 
-        //private void AddTextButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    if (TextPositionX.Text == "" || TextPositionY.Text == "")
-        //    {
-        //        MessageBox.Show("Please enter a number.");
-        //        return;
-        //    }
-
-        //    int xPos = int.Parse(TextPositionX.Text) - 1;
-        //    int yPos = int.Parse(TextPositionY.Text) - 1;
-
-        //    InputText inputText = ProcessInputText(TextInput.Text);
-
-        //    if (inputText.PointMap.Count == 0)
-        //        return;
-
-        //    switch(TextAnchorMode)
-        //    {
-        //        case "TopLeft":
-        //            break;
-
-        //        case "CenterTop":
-        //            xPos -= (int)(inputText.Width / 2);
-        //            break;
-
-        //        case "TopRight":
-        //            xPos -= inputText.Width;
-        //            break;
-
-        //        case "CenterRight":
-        //            xPos -= inputText.Width;
-        //            yPos -= (int)(inputText.Height / 2);
-        //            break;
-
-        //        case "BottomRight":
-        //            xPos -= inputText.Width;
-        //            yPos -= inputText.Height;
-        //            break;
-
-        //        case "CenterBottom":
-        //            xPos -= (int)(inputText.Width / 2);
-        //            yPos -= inputText.Height;
-        //            break;
-
-        //        case "BottomLeft":
-        //            yPos -= inputText.Height;
-        //            break;
-
-        //        case "CenterLeft":
-        //            yPos -= (int)(inputText.Height / 2);
-        //            break;
-
-        //        case "Center":
-        //            xPos -= (int)(inputText.Width / 2);
-        //            yPos -= (int)(inputText.Height / 2);
-        //            break;
-
-        //    }
-
-        //    foreach (Point pixel in inputText.PointMap)
-        //    {
-        //        Point translatedPixel = Point.Add(pixel, new Vector(xPos, yPos));
-
-        //        if (!(translatedPixel.X >= MessageMap.Count || translatedPixel.Y >= MessageMap[0].Count || translatedPixel.X < 0 || translatedPixel.Y < 0))
-        //            SetMap(translatedPixel, true);
-        //    }
-        //}
-
-        //private InputText ProcessInputText(string inputtedText)
-        //{
-        //    List<Point> pointMap = new List<Point>();
-
-        //    int distance = 8;
-        //    for (int counter = 0; counter < inputtedText.Length; counter++)
-        //    {
-        //        List<Point> getPoints = new List<Point>();
-        //        EnglishFont.TryGetValue(inputtedText[counter].ToString(), out getPoints);
-
-        //        if (getPoints == null)
-        //        {
-        //            MessageBox.Show("Please enter a valid character (A-Z, 0-9).");
-        //            return new InputText(new List<Point>(), 0, 0);
-        //        }
-
-        //        foreach (Point pt in getPoints)
-        //        {
-        //            pointMap.Add(Point.Add(pt, new Vector(counter * distance, 0)));
-        //        }
-
-        //    }
-
-        //    int width = 0;
-        //    int height = 0;
-
-        //    foreach (Point point in pointMap)
-        //    {
-        //        if (point.X > width)
-        //        {
-        //            width = (int)point.X;
-        //        }
-        //        if (point.Y > height)
-        //        {
-        //            height = (int)point.Y;
-        //        }
-        //    }
-
-        //    return new InputText(pointMap, width, height);
-        //}
-
-        private InputText ProcessInputText(string inputtedText) // variant with no loop
+        // Compares string inputtedText with Dictionary<string, List<Point> EnglishFont to retrieve a List<Point> corresponding to inputtedText
+        // InputText is a struct used to also include the width and height of the character retrieved from EnglishFont
+        // Spaces have a set width of 5, as they produce empty lists
+        private InputText ProcessInputText(string inputtedText)
         {
             List<Point> pointMap = new List<Point>();
 
             EnglishFont.TryGetValue(inputtedText.ToString(), out pointMap);
-            
+
             if (inputtedText == "Space")
             {
                 return new InputText(new List<Point>(), 5, 0);
@@ -347,23 +282,8 @@ namespace Lightboard_Message_Creator
             return new InputText(pointMap, width, height);
         }
 
-        //private void AnchorButton_Click(object sender, RoutedEventArgs e)
-        //{
-        //    Button anchorButton = sender as Button;
-        //    if (anchorButton != null)
-        //    {
-        //        string position = anchorButton.Name;
-        //        TextAnchorMode = position.Substring(6, position.Length - 12);
-
-        //        if (CurrentAnchorButton != null)
-        //            CurrentAnchorButton.IsEnabled = true;
-        //        CurrentAnchorButton = anchorButton;
-        //        CurrentAnchorButton.IsEnabled = false;
-        //    }
-        //}
-
-
-
+        // Event triggers when a draw mode is selected in the second toolbar
+        // Sets the current drawing mode
         private void DrawMode_Click(object sender, RoutedEventArgs e)
         {
             Button mode = sender as Button;
@@ -388,12 +308,14 @@ namespace Lightboard_Message_Creator
             }
         }
 
+        // Switches the button at the current position of the text cursor to indicate its position
         private void TextPositionFlashingTimer_Tick(object sender, EventArgs e)
         {
             if (!(CurrentTextModePosition.X >= MessageMap.Count || CurrentTextModePosition.Y >= MessageMap[0].Count || CurrentTextModePosition.X < 0 || CurrentTextModePosition.Y < 0))
                 SwitchMap(CurrentTextModePosition);
         }
 
+        // Resets the current position of the text cursor to its original state and stops the timer
         private void ResetTextPosition()
         {
             if (!(CurrentTextModePosition.X >= MessageMap.Count || CurrentTextModePosition.Y >= MessageMap[0].Count || CurrentTextModePosition.X < 0 || CurrentTextModePosition.Y < 0))
@@ -401,6 +323,8 @@ namespace Lightboard_Message_Creator
             TextPositionFlashingTimer.Stop();
         }
 
+        // Event triggers when a button on the UI button board is pressed
+        // Sets the corresponding position on the 2d int array MessageMap based on the drawing mode
         private void LED_Click(object sender, RoutedEventArgs e)
         {
             Button led = sender as Button;
@@ -440,11 +364,15 @@ namespace Lightboard_Message_Creator
             Unfocus.IsEnabled = false;
         }
 
+        // Event triggers when a key is pressed
+        // Only works when TextModeOn is true
+        // When key pressed is backspace, delete the previously entered letter
+        // Otherwise, check if key exists in hard coded font, set the resulting coordinates on MessageMap, and move the text cursor to new position
         private void TextKey_Pressed (object sender, KeyEventArgs e)
         {
             string pressedKey = e.Key.ToString();
 
-            if (e.Key == Key.Back && PreviousLetters != null && PreviousLetters.Count > 0)
+            if (TextModeOn && e.Key == Key.Back && PreviousLetters != null && PreviousLetters.Count > 0)
             {
                 ResetTextPosition();
 
@@ -487,7 +415,9 @@ namespace Lightboard_Message_Creator
             }
         }
         
-
+        // Event triggers on pressing play button
+        // If preview is currently paused, resume
+        // Else, prepare board and map for selected preview mode and begin preview
         private void PlayPreview_Click(object sender, RoutedEventArgs e)
         {
 
@@ -503,9 +433,19 @@ namespace Lightboard_Message_Creator
                 return;
             }
 
+            // Store MessageMap width and height prior to changing it for preview
             EditingWidth = MessageMap.Count;
             EditingHeight = MessageMap[0].Count;
 
+            // Adjust accordingly to display mode
+            /* 0 -> left scroll
+             * 1 -> right scroll
+             * 2 -> center out
+             * 3 -> flash
+             * 4 -> roll up
+             * 5 -> roll down
+             * 6 -> steady on
+             * */
             int selection = DisplayModeSelect.SelectedIndex;
 
             if (selection == 0 || selection == 1)
@@ -565,7 +505,7 @@ namespace Lightboard_Message_Creator
                 PreviewTimer.Interval = new TimeSpan(0, 0, 0, 0, HorizontalScrollingSpeed);
             }
             
-
+            // Refresh UI button board and begin preview
             ResetLEDBoard();
 
             Scrolling = true;
@@ -573,7 +513,7 @@ namespace Lightboard_Message_Creator
 
 
 
-
+            // Enable/disable controls during preview
             PlayPreview.IsEnabled = false;
             PausePreview.IsEnabled = true;
             StopPreview.IsEnabled = true;
@@ -583,20 +523,6 @@ namespace Lightboard_Message_Creator
             TranslateRight.IsEnabled = false;
             TranslateUp.IsEnabled = false;
             TranslateDown.IsEnabled = false;
-
-            //AddTextButton.IsEnabled = false;
-            //TextPositionX.IsEnabled = false;
-            //TextPositionY.IsEnabled = false;
-
-            //AnchorTopLeftButton.IsEnabled = false;
-            //AnchorCenterTopButton.IsEnabled = false;
-            //AnchorTopRightButton.IsEnabled = false;
-            //AnchorCenterRightButton.IsEnabled = false;
-            //AnchorBottomRightButton.IsEnabled = false;
-            //AnchorCenterBottomButton.IsEnabled = false;
-            //AnchorBottomLeftButton.IsEnabled = false;
-            //AnchorCenterLeftButton.IsEnabled = false;
-            //AnchorCenterButton.IsEnabled = false;
 
             DrawModePencil.IsEnabled = false;
             DrawModeEraser.IsEnabled = false;
@@ -615,12 +541,16 @@ namespace Lightboard_Message_Creator
             
 
         }
+        // Event triggers on pressing pause button
+        // Pause current preview
         private void PausePreview_Click(object sender, RoutedEventArgs e)
         {
             PlayPreview.IsEnabled = true;
             PausePreview.IsEnabled = false;
             PreviewTimer.Stop();
         }
+        // Event triggers on pressing stop button
+        // Stop preview and reset to state prior to preview
         private void StopPreview_Click(object sender, RoutedEventArgs e)
         {
             ScrollPositionX = 0;
@@ -631,6 +561,7 @@ namespace Lightboard_Message_Creator
             int w = MessageMap.Count;
             int h = MessageMap[0].Count;
 
+            // Different resets for different display modes
             int selection = DisplayModeSelect.SelectedIndex;
 
             if (selection == 0 || selection == 1)
@@ -654,13 +585,14 @@ namespace Lightboard_Message_Creator
 
             SetMessageMapSize(EditingWidth, EditingHeight, false);
 
+            // Refresh UI button board and stop
             ResetLEDBoard();
 
             Scrolling = false;
             PreviewTimer.Stop();
 
 
-
+            // Enable/Disable controls
             PlayPreview.IsEnabled = true;
             PausePreview.IsEnabled = false;
             StopPreview.IsEnabled = false;
@@ -670,20 +602,6 @@ namespace Lightboard_Message_Creator
             TranslateRight.IsEnabled = true;
             TranslateUp.IsEnabled = true;
             TranslateDown.IsEnabled = true;
-
-            //AddTextButton.IsEnabled = true;
-            //TextPositionX.IsEnabled = true;
-            //TextPositionY.IsEnabled = true;
-
-            //AnchorTopLeftButton.IsEnabled = true;
-            //AnchorCenterTopButton.IsEnabled = true;
-            //AnchorTopRightButton.IsEnabled = true;
-            //AnchorCenterRightButton.IsEnabled = true;
-            //AnchorBottomRightButton.IsEnabled = true;
-            //AnchorCenterBottomButton.IsEnabled = true;
-            //AnchorBottomLeftButton.IsEnabled = true;
-            //AnchorCenterLeftButton.IsEnabled = true;
-            //AnchorCenterButton.IsEnabled = true;
 
             DrawModePencil.IsEnabled = true;
             DrawModeEraser.IsEnabled = true;
@@ -699,7 +617,8 @@ namespace Lightboard_Message_Creator
             ScrollBarX.IsEnabled = true;
             ScrollBarY.IsEnabled = true;
         }
-
+        // Event triggers on timer tick
+        // Progresses preview based on preview mode
         private void PreviewTimer_Tick(object sender, EventArgs e)
         {
             int w = MessageMap.Count;
@@ -793,12 +712,16 @@ namespace Lightboard_Message_Creator
             ResetLEDBoard();
         }
 
+        // Event triggers when display mode combo box selection is changed
+        // Changes the display mode
         private void DisplayModeSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (FinishedLoading)
                 ReloadNewDisplayMode();
         }
 
+        // Changes the display mode
+        // Enables/disables width/height controls based on display mode
         private void ReloadNewDisplayMode()
         {
             ScrollPositionX = 0;
@@ -831,6 +754,8 @@ namespace Lightboard_Message_Creator
             ResizeMessage();
         }
 
+        // Event triggers when confirm button is clicked
+        // Resizes the MessageMap based on inputted width and height
         private void SizeConfirm_Click(object sender, RoutedEventArgs e)
         {
             ScrollPositionX = 0;
@@ -838,11 +763,15 @@ namespace Lightboard_Message_Creator
             ResizeMessage();
         }
 
+        // Event triggers when clear button is clicked
+        // Resets the MessageMap
         private void ClearMessage_Click(object sender, RoutedEventArgs e)
         {
             SetMessageMapSize(MessageMap.Count, MessageMap[0].Count, true);
         }
 
+        // Parses textboxes for width and height and resizes the MessageMap
+        // Adjusts the scroll bars as needed
         private void ResizeMessage()
         {
             if (MessageWidth.Text == "" || MessageHeight.Text == "")
@@ -860,24 +789,26 @@ namespace Lightboard_Message_Creator
             ScrollBarY.Maximum = h - LEDBoardHeight;
         }
 
+        // Event triggers when horizontal scroll bar is moved
+        // Adjusts scroll position and refreshes the UI button board
         private void ScrollBarX_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             ScrollPositionX = Convert.ToInt32(ScrollBarX.Value);
             ResetLEDBoard();
         }
 
+        // Event triggers when vertical scroll bar is moved
+        // Adjusts scroll position and refreshed the UI button board
         private void ScrollBarY_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {
             ScrollPositionY = Convert.ToInt32(ScrollBarY.Value);
             ResetLEDBoard();
         }
 
-
-       
-
-
-
-
+        // Sets the size of the MessageMap
+        // If newMap = true, populates the MessageMap completely with zeros
+        // Else, add zeros as necessary, preserving the original map
+        // Size of the MessageMap cannot be smaller than the UI button board
         private void SetMessageMapSize(int width, int height, bool newMap)
         {
             if (newMap)
@@ -920,6 +851,8 @@ namespace Lightboard_Message_Creator
 
         }
 
+        // Four events trigger when translation buttons are pressed
+        // Translates the 1s on the MessageMap in the desired direction
         private void TranslateLeft_Click(object sender, RoutedEventArgs e)
         {
             TranslateMap("Left");
@@ -940,6 +873,8 @@ namespace Lightboard_Message_Creator
             TranslateMap("Down");
         }
 
+        // Translates the 1s on the MessageMap in the desired direction
+        // All points that go off the MessageMap are lost
         private void TranslateMap(string direction)
         {
             int width = MessageMap.Count;
@@ -1002,6 +937,7 @@ namespace Lightboard_Message_Creator
             ResetLEDBoard();
         }
 
+        // Refreshes every button on the UI button board to the corresponding index on the MessageMap
         private void ResetLEDBoard()
         {
             for (int x = 0; x < LEDBoardWidth; x++)
@@ -1013,6 +949,7 @@ namespace Lightboard_Message_Creator
             }
         }
 
+        // Sets a position on the MessageMap to 1 or 0, also adjusting the corresponding button on the UI button board
         private void SetMap(Point position, bool active)
         {
             MessageMap[(int)position.X][(int)position.Y] = active ? 1 : 0;
@@ -1027,6 +964,7 @@ namespace Lightboard_Message_Creator
             
         }
 
+        // Switches a position on the MessageMap, also adjusting the corresponding button on the UI button board
         private void SwitchMap(Point position)
         {
             int state = MessageMap[(int)position.X][(int)position.Y];
@@ -1040,6 +978,7 @@ namespace Lightboard_Message_Creator
             }
         }
 
+        // Given a button on the UI button board, find the corresponding coordinate point on the MessageMap
         private Point FindLED(Button led)
         {
             Point endPos = new Point(0, 0);
@@ -1057,6 +996,7 @@ namespace Lightboard_Message_Creator
             return endPos;
         }
 
+        // Changes the colour of a button on the UI button board based on active
         private void SetLED(Button led, bool active)
         {
             if (active)
@@ -1071,205 +1011,9 @@ namespace Lightboard_Message_Creator
             }
         }
 
-        //int FontSize = 10;
+        
 
-        //private static System.Drawing.Bitmap GeometryToBitmap(Geometry geometry, int TargetSize)
-        //{
-        //    var rect = geometry.GetRenderBounds(new Pen(Brushes.Black, 0));
-
-        //    var bigger = rect.Width > rect.Height ? rect.Width : rect.Height;
-        //    var scale = TargetSize / bigger;
-
-        //    Geometry scaledGeometry = Geometry.Combine(geometry, geometry, GeometryCombineMode.Intersect, new ScaleTransform(scale, scale));
-        //    rect = scaledGeometry.GetRenderBounds(new Pen(Brushes.Black, 0));
-
-        //    Geometry transformedGeometry = Geometry.Combine(scaledGeometry, scaledGeometry, GeometryCombineMode.Intersect, new TranslateTransform(((TargetSize - rect.Width) / 2) - rect.Left, ((TargetSize - rect.Height) / 2) - rect.Top));
-
-        //    RenderTargetBitmap bmp = new RenderTargetBitmap(TargetSize, TargetSize, // Size
-        //                                                    96, 96, // DPI 
-        //                                                    PixelFormats.Pbgra32);
-
-        //    DrawingVisual viz = new DrawingVisual();
-        //    using (DrawingContext dc = viz.RenderOpen())
-        //    {
-        //        dc.DrawGeometry(Brushes.Black, null, transformedGeometry);
-        //    }
-
-        //    bmp.Render(viz);
-
-        //    PngBitmapEncoder pngEncoder = new PngBitmapEncoder();
-        //    pngEncoder.Frames.Add(BitmapFrame.Create(bmp));
-
-        //    System.IO.MemoryStream ms = new System.IO.MemoryStream();
-        //    pngEncoder.Save(ms);
-
-        //    System.Drawing.Bitmap bumpuh = new System.Drawing.Bitmap(System.Drawing.Bitmap.FromStream(ms));
-
-        //    return CopyToBpp(bumpuh, 8);
-        //}
-        //public static int[] BitmapToByteArray(System.Drawing.Bitmap image)
-        //{
-        //    byte[] returns = null;
-        //    if (image.PixelFormat == System.Drawing.Imaging.PixelFormat.Format8bppIndexed)
-        //    {
-        //        System.Drawing.Imaging.BitmapData bitmapData = image.LockBits(
-        //                                        new System.Drawing.Rectangle(0, 0, image.Width, image.Height),
-        //                                        System.Drawing.Imaging.ImageLockMode.ReadWrite,
-        //                                        image.PixelFormat);
-        //        int noOfPixels = image.Width * image.Height;
-        //        int colorDepth = System.Drawing.Bitmap.GetPixelFormatSize(image.PixelFormat);
-        //        int step = colorDepth / 8;
-        //        byte[] bytes = new byte[noOfPixels * step];
-        //        IntPtr address = bitmapData.Scan0;
-        //        Marshal.Copy(address, bytes, 0, bytes.Length);
-        //        ////////////////////////////////////////////////
-        //        ///
-        //        returns = (byte[])bytes.Clone();
-        //        ///
-        //        ////////////////////////////////////////////////
-        //        Marshal.Copy(bytes, 0, address, bytes.Length);
-        //        image.UnlockBits(bitmapData);
-        //    }
-        //    else
-        //    {
-        //        throw new Exception("8bpp indexed image required");
-        //    }
-        //    return returns.Select(x => (int)x).ToArray();
-        //}
-        //public int[,] ConvertArray(int[] Input, int size)
-        //{
-        //    int[,] Output = new int[(int)(Input.Length / size), size];
-        //    for (int i = 0; i < Input.Length; i += size)
-        //    {
-        //        for (int j = 0; j < size; j++)
-        //        {
-        //            Output[(int)(i / size), j] = Input[i + j];
-        //        }
-        //    }
-        //    return Output;
-        //}
-
-        ///// <summary>
-        ///// Copies a bitmap into a 1bpp/8bpp bitmap of the same dimensions, fast
-        ///// </summary>
-        ///// <param name="b">original bitmap</param>
-        ///// <param name="bpp">1 or 8, target bpp</param>
-        ///// <returns>a 1bpp copy of the bitmap</returns>
-        //static System.Drawing.Bitmap CopyToBpp(System.Drawing.Bitmap b, int bpp)
-        //{
-        //    if (bpp != 1 && bpp != 8) throw new System.ArgumentException("1 or 8", "bpp");
-
-        //    // Plan: built into Windows GDI is the ability to convert
-        //    // bitmaps from one format to another. Most of the time, this
-        //    // job is actually done by the graphics hardware accelerator card
-        //    // and so is extremely fast. The rest of the time, the job is done by
-        //    // very fast native code.
-        //    // We will call into this GDI functionality from C#. Our plan:
-        //    // (1) Convert our Bitmap into a GDI hbitmap (ie. copy unmanaged->managed)
-        //    // (2) Create a GDI monochrome hbitmap
-        //    // (3) Use GDI "BitBlt" function to copy from hbitmap into monochrome (as above)
-        //    // (4) Convert the monochrone hbitmap into a Bitmap (ie. copy unmanaged->managed)
-
-        //    int w = b.Width, h = b.Height;
-        //    IntPtr hbm = b.GetHbitmap(); // this is step (1)
-        //    //
-        //    // Step (2): create the monochrome bitmap.
-        //    // "BITMAPINFO" is an interop-struct which we define below.
-        //    // In GDI terms, it's a BITMAPHEADERINFO followed by an array of two RGBQUADs
-        //    BITMAPINFO bmi = new BITMAPINFO();
-        //    bmi.biSize = 40;  // the size of the BITMAPHEADERINFO struct
-        //    bmi.biWidth = w;
-        //    bmi.biHeight = h;
-        //    bmi.biPlanes = 1; // "planes" are confusing. We always use just 1. Read MSDN for more info.
-        //    bmi.biBitCount = (short)bpp; // ie. 1bpp or 8bpp
-        //    bmi.biCompression = BI_RGB; // ie. the pixels in our RGBQUAD table are stored as RGBs, not palette indexes
-        //    bmi.biSizeImage = (uint)(((w + 7) & 0xFFFFFFF8) * h / 8);
-        //    bmi.biXPelsPerMeter = 1000000; // not really important
-        //    bmi.biYPelsPerMeter = 1000000; // not really important
-        //    // Now for the colour table.
-        //    uint ncols = (uint)1 << bpp; // 2 colours for 1bpp; 256 colours for 8bpp
-        //    bmi.biClrUsed = ncols;
-        //    bmi.biClrImportant = ncols;
-        //    bmi.cols = new uint[256]; // The structure always has fixed size 256, even if we end up using fewer colours
-        //    if (bpp == 1) { bmi.cols[0] = MAKERGB(0, 0, 0); bmi.cols[1] = MAKERGB(255, 255, 255); }
-        //    else { for (int i = 0; i < ncols; i++) bmi.cols[i] = MAKERGB(i, i, i); }
-        //    // For 8bpp we've created an palette with just greyscale colours.
-        //    // You can set up any palette you want here. Here are some possibilities:
-        //    // greyscale: for (int i=0; i<256; i++) bmi.cols[i]=MAKERGB(i,i,i);
-        //    // rainbow: bmi.biClrUsed=216; bmi.biClrImportant=216; int[] colv=new int[6]{0,51,102,153,204,255};
-        //    //          for (int i=0; i<216; i++) bmi.cols[i]=MAKERGB(colv[i/36],colv[(i/6)%6],colv[i%6]);
-        //    // optimal: a difficult topic: http://en.wikipedia.org/wiki/Color_quantization
-        //    // 
-        //    // Now create the indexed bitmap "hbm0"
-        //    IntPtr bits0; // not used for our purposes. It returns a pointer to the raw bits that make up the bitmap.
-        //    IntPtr hbm0 = CreateDIBSection(IntPtr.Zero, ref bmi, DIB_RGB_COLORS, out bits0, IntPtr.Zero, 0);
-        //    //
-        //    // Step (3): use GDI's BitBlt function to copy from original hbitmap into monocrhome bitmap
-        //    // GDI programming is kind of confusing... nb. The GDI equivalent of "Graphics" is called a "DC".
-        //    IntPtr sdc = GetDC(IntPtr.Zero);       // First we obtain the DC for the screen
-        //    // Next, create a DC for the original hbitmap
-        //    IntPtr hdc = CreateCompatibleDC(sdc); SelectObject(hdc, hbm);
-        //    // and create a DC for the monochrome hbitmap
-        //    IntPtr hdc0 = CreateCompatibleDC(sdc); SelectObject(hdc0, hbm0);
-        //    // Now we can do the BitBlt:
-        //    BitBlt(hdc0, 0, 0, w, h, hdc, 0, 0, SRCCOPY);
-        //    // Step (4): convert this monochrome hbitmap back into a Bitmap:
-        //    System.Drawing.Bitmap b0 = System.Drawing.Bitmap.FromHbitmap(hbm0);
-        //    //
-        //    // Finally some cleanup.
-        //    DeleteDC(hdc);
-        //    DeleteDC(hdc0);
-        //    ReleaseDC(IntPtr.Zero, sdc);
-        //    DeleteObject(hbm);
-        //    DeleteObject(hbm0);
-        //    //
-        //    return b0;
-        //}
-        //[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        //public static extern bool DeleteObject(IntPtr hObject);
-
-        //[System.Runtime.InteropServices.DllImport("user32.dll")]
-        //public static extern IntPtr GetDC(IntPtr hwnd);
-
-        //[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        //public static extern IntPtr CreateCompatibleDC(IntPtr hdc);
-
-        //[System.Runtime.InteropServices.DllImport("user32.dll")]
-        //public static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
-
-        //[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        //public static extern int DeleteDC(IntPtr hdc);
-
-        //[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        //public static extern IntPtr SelectObject(IntPtr hdc, IntPtr hgdiobj);
-
-        //[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        //public static extern int BitBlt(IntPtr hdcDst, int xDst, int yDst, int w, int h, IntPtr hdcSrc, int xSrc, int ySrc, int rop);
-        //static int SRCCOPY = 0x00CC0020;
-
-        //[System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        //static extern IntPtr CreateDIBSection(IntPtr hdc, ref BITMAPINFO bmi, uint Usage, out IntPtr bits, IntPtr hSection, uint dwOffset);
-        //static uint BI_RGB = 0;
-        //static uint DIB_RGB_COLORS = 0;
-        //[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]
-        //public struct BITMAPINFO
-        //{
-        //    public uint biSize;
-        //    public int biWidth, biHeight;
-        //    public short biPlanes, biBitCount;
-        //    public uint biCompression, biSizeImage;
-        //    public int biXPelsPerMeter, biYPelsPerMeter;
-        //    public uint biClrUsed, biClrImportant;
-        //    [System.Runtime.InteropServices.MarshalAs(System.Runtime.InteropServices.UnmanagedType.ByValArray, SizeConst = 256)]
-        //    public uint[] cols;
-        //}
-
-        //static uint MAKERGB(int r, int g, int b)
-        //{
-        //    return ((uint)(b & 255)) | ((uint)((r & 255) << 8)) | ((uint)((g & 255) << 16));
-        //}
-
-
+        // Initialize hard coded font
         private void InitializeEnglishFont()
         {
 
@@ -1330,7 +1074,21 @@ namespace Lightboard_Message_Creator
             EnglishFont.Add("X", Convert2DArrayToPointList(letterX));
             EnglishFont.Add("Y", Convert2DArrayToPointList(letterY));
             EnglishFont.Add("Z", Convert2DArrayToPointList(letterZ));
+
+
+            EnglishFont.Add("D0", Convert2DArrayToPointList(character0));
+            EnglishFont.Add("D1", Convert2DArrayToPointList(character1));
+            EnglishFont.Add("D2", Convert2DArrayToPointList(character2));
+            EnglishFont.Add("D3", Convert2DArrayToPointList(character3));
+            EnglishFont.Add("D4", Convert2DArrayToPointList(character4));
+            EnglishFont.Add("D5", Convert2DArrayToPointList(character5));
+            EnglishFont.Add("D6", Convert2DArrayToPointList(character6));
+            EnglishFont.Add("D7", Convert2DArrayToPointList(character7));
+            EnglishFont.Add("D8", Convert2DArrayToPointList(character8));
+            EnglishFont.Add("D9", Convert2DArrayToPointList(character9));
         }
+
+        // Hard coded maps for characters from A-Z and 0-9, also space
 
         int[,] space = new int[10, 7]{
             {0,0,0,0,0,0,0},
@@ -1683,8 +1441,139 @@ namespace Lightboard_Message_Creator
             {1,1,1,1,1,1,0}
         };
 
+        int[,] character0 = new int[10, 7]{
+            {0,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,1,1,0},
+            {1,0,0,1,0,1,0},
+            {1,0,1,0,0,1,0},
+            {1,1,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,1,1,1,0,0}
+        };
+
+        int[,] character1 = new int[10, 7]{
+            {0,0,1,0,0,0,0},
+            {0,1,1,0,0,0,0},
+            {1,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0},
+            {1,1,1,1,1,0,0}
+        };
+
+        int[,] character2 = new int[10, 7]{
+            {0,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,1,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,1,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,1,1,1,1,1,0}
+        };
+
+        int[,] character3 = new int[10, 7]{
+            {0,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,1,0,0},
+            {0,0,1,1,0,0,0},
+            {0,0,0,0,1,0,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {1,0,0,0,1,0,0},
+            {0,1,1,1,0,0,0}
+        };
+
+        int[,] character4 = new int[10, 7]{
+            {0,0,0,1,1,0,0},
+            {0,0,1,0,1,0,0},
+            {0,0,1,0,1,0,0},
+            {0,1,0,0,1,0,0},
+            {0,1,0,0,1,0,0},
+            {1,0,0,0,1,0,0},
+            {1,1,1,1,1,1,0},
+            {0,0,0,0,1,0,0},
+            {0,0,0,0,1,0,0},
+            {0,0,0,0,1,0,0}
+        };
+
+        int[,] character5 = new int[10, 7]{
+            {1,1,1,1,1,1,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,1,1,1,1,0,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,1,1,1,0,0}
+        };
+
+        int[,] character6 = new int[10, 7]{
+            {0,0,1,1,1,0,0},
+            {0,1,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,0,0,0,0,0},
+            {1,0,1,1,1,0,0},
+            {1,1,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,1,1,1,0,0}
+        };
+
+        int[,] character7 = new int[10, 7]{
+            {1,1,1,1,1,1,0},
+            {1,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,1,0,0},
+            {0,0,0,0,1,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,0,1,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0},
+            {0,0,1,0,0,0,0}
+        };
+
+        int[,] character8 = new int[10, 7]{
+            {0,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,0,0,1,0,0},
+            {0,0,1,1,0,0,0},
+            {0,1,0,0,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {0,1,1,1,1,0,0}
+        };
+
+        int[,] character9 = new int[10, 7]{
+            {0,1,1,1,1,0,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,0,1,0},
+            {1,0,0,0,1,1,0},
+            {0,1,1,1,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,0,1,0},
+            {0,0,0,0,1,0,0},
+            {0,1,1,1,0,0,0}
+        };
+
     }
 
+    // InputText struct used in hard coded font
     public struct InputText
     {
         public List<Point> PointMap;
